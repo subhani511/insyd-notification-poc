@@ -6,9 +6,14 @@ const Notification = require("../models/Notification");
 router.get("/:userId", async (req, res) => {
   try {
     const { userId } = req.params;
-    const notifications = await Notification.find({ user: userId }) // use "user" field
+
+    // FIX: query by "userId" (schema field), not "user"
+    // ADD: populate actorId to fetch their "name"
+    const notifications = await Notification.find({ userId })
+      .populate("actorId", "name email") // fetch actor's name (and email if needed)
       .sort({ createdAt: -1 })
       .limit(50);
+
     res.json(notifications);
   } catch (err) {
     console.error("GET /notifications error:", err);

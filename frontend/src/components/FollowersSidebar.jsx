@@ -2,50 +2,72 @@ import React, { useState, useEffect } from "react";
 import { fetchUsers, followUser } from "../api";
 import styled from "styled-components";
 
+// Sidebar container
+const SidebarContainer = styled.div`
+  background-color: #f9fbfd;
+  border-radius: 12px;
+  padding: 20px;
+  width: 250px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+`;
+
+// User card
 const UserCard = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 8px 12px;
-  border-bottom: 1px solid #ddd;
-`;
+  padding: 10px 12px;
+  border-bottom: 1px solid #e0e0e0;
+  border-radius: 8px;
+  width: 100%;
+  margin-bottom: 10px;
 
-const SidebarContainer = styled.div`
-  background-color: #f0f4f8;  // subtle light gray-blue
-  border-radius: 10px;
-  padding: 15px;
-  width: 250px;
-
-  /* Center vertically within its parent */
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-`;
-
-
-const Button = styled.button`
-  background: ${(props) => (props.following ? "#4caf50" : "#007bff")};
-  color: white;
-  border: none;
-  padding: 6px 12px;
-  border-radius: 5px;
-  cursor: pointer;
-  transition: background 0.3s;
   &:hover {
-    opacity: 0.9;
+    background-color: #f1f5f9;
   }
 `;
 
-export default function FollowersSidebar({ userId }) {
+// User name
+const UserName = styled.span`
+  flex: 1;
+  font-weight: 500;
+  font-size: 14px;
+  color: #333;
+  margin-right: 12px;
+`;
+
+// Follow button
+const Button = styled.button`
+  background: ${(props) => (props.$following ? "#4caf50" : "#007bff")};
+  color: white;
+  border: none;
+  padding: 6px 14px;
+  border-radius: 20px;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 14px;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+
+  &:hover {
+    background: ${(props) => (props.$following ? "#43a047" : "#0056b3")};
+    transform: scale(1.05);
+  }
+`;
+
+export default function FollowersSidebar({ userId, usersNotifications }) {
   const [users, setUsers] = useState([]);
-  const [followStates, setFollowStates] = useState({}); // Track toggle state locally
+  const [followStates, setFollowStates] = useState({});
+  const { addNotification, removeNotification } = usersNotifications;
 
   useEffect(() => {
-    fetchUsers().then(res => {
+    fetchUsers().then((res) => {
       setUsers(res.data);
-      // Initialize all buttons to false (Follow)
       const initialStates = {};
-      res.data.forEach(u => { initialStates[u._id] = false; });
+      res.data.forEach((u) => { initialStates[u._id] = false; });
       setFollowStates(initialStates);
     });
   }, []);
@@ -53,24 +75,41 @@ export default function FollowersSidebar({ userId }) {
   const handleFollowToggle = async (targetUser) => {
     const isFollowing = followStates[targetUser._id];
 
+    await followUser({
+      followerId: userId,
+      followingId: targetUser._id,
+    });
+
     if (!isFollowing) {
-      await followUser({ followerId: userId, followingId: targetUser._id });
+      addNotification({
+        _id: `${userId}-${targetUser._id}-follow`,
+        type: "NEW_FOLLOW",
+        authorName: users.find(u => u._id === userId)?.name || "Someone",
+        read: false
+      });
+    } else {
+      removeNotification(`${userId}-${targetUser._id}-follow`);
     }
 
-    // Toggle local follow state
-    setFollowStates(prev => ({ ...prev, [targetUser._id]: !isFollowing }));
+    setFollowStates((prev) => ({
+      ...prev,
+      [targetUser._id]: !isFollowing,
+    }));
   };
 
   return (
     <SidebarContainer>
       <h3>Users</h3>
-      {users.map(u => {
+      {users.length === 0 && (
+        <p style={{ color: "#777", textAlign: "center" }}>No users found</p>
+      )}
+      {users.map((u) => {
         const isFollowing = followStates[u._id] || false;
         return (
           <UserCard key={u._id}>
-            <span>{u.name}</span>
+            <UserName>{u.name || "Unnamed User"}</UserName>
             <Button
-              following={isFollowing}
+              $following={isFollowing}
               onClick={() => handleFollowToggle(u)}
             >
               {isFollowing ? "Following" : "Follow"}

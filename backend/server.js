@@ -8,8 +8,6 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server, { cors: { origin: "*" } });
 
-// Make io accessible in routes
-app.set("io", io);
 
 // Models
 const User = require("./models/user");
@@ -33,14 +31,15 @@ app.use("/users", require("./routes/users"));
 app.use("/content", require("./routes/content")(io));
 app.use("/notifications", require("./routes/notifications"));
 
-const PORT = 5000;
+const PORT = process.env.PORT || 5000;
 
 // Wrap DB connection and server start in async function
 async function startServer() {
   try {
-    await mongoose.connect("mongodb://127.0.0.1:27017/insyd-poc", {
-      useNewUrlParser: true,
-      useUnifiedTopology: true
+    const mongoURI = process.env.MONGO_URI || "mongodb://127.0.0.1:27017/insyd-poc";
+    await mongoose.connect(mongoURI, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
     });
     console.log("MongoDB connected");
 
