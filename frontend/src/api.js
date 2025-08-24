@@ -1,9 +1,7 @@
 import axios from "axios";
 
-const API_BASE = "http://localhost:5000"; // 👈 Change if deploying to Render
-
 const api = axios.create({
-  baseURL: API_BASE,
+  baseURL: process.env.REACT_APP_API_URL,
 });
 
 api.interceptors.response.use(
@@ -39,7 +37,7 @@ export const fetchUsers = async () => {
 };
 
 export const fetchPosts = async () => {
-  const res = await api.get("/posts");
+  const res = await api.get("/content");
   return res.data; // ✅ return posts array with populated author name
 };
 
