@@ -2,6 +2,8 @@ const express = require("express");
 const router = express.Router();
 const User = require("../models/UserItem");
 const Notification = require("../models/Notification");
+const Content = require("../models/Content");
+
 
 // Create a new post
 router.post("/", async (req, res) => {
