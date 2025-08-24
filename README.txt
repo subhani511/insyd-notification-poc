@@ -21,31 +21,27 @@ Technology Stack:
 -----------------
 - Frontend: ReactJS
 - Backend: NodeJS with ExpressJS
-- Database: Any preferred DB (MongoDB, PostgreSQL, or SQLite)
-- Real-time communication: Socket.io (or similar)
+- Database: MongoDB
+- Real-time communication: Socket.io 
 
 Folder Structure:
 -----------------
 insyd-notification-poc/
 │
-├── client/                  # ReactJS frontend
+├── frontend/                  # ReactJS frontend
 │   ├── public/
 │   │   └── index.html
 │   ├── src/
 │   │   ├── components/      # Reusable UI components
 │   │   ├── pages/           # App pages
-│   │   ├── services/        # API & WebSocket clients
-│   │   └── App.js           # Main React component
+│   │   └── App.jsx           # Main React component
+|   |   |__ api.js
 │   └── package.json
 │
-├── server/                  # NodeJS backend
+├── backend/                  # NodeJS backend
 │   ├── src/
-│   │   ├── controllers/     # Notification and user handlers
 │   │   ├── models/          # DB schemas/models
 │   │   ├── routes/          # API endpoints
-│   │   ├── services/        # Notification logic
-│   │   └── utils/           # Helper functions
-│   ├── config/              # Database/configuration settings
 │   └── package.json
 │
 └── README.txt               # This file
@@ -92,6 +88,6 @@ System Design Notes:
 
 Deliverables:
 -------------
-- Frontend repository: [Insert GitHub link]
-- Backend repository: [Insert GitHub link]
-- Deployed POC app: [Insert live app link]
+- Frontend repository: https://insyd-notification-poc-alpha.vercel.app
+- Backend repository: https://insyd-notification-poc-3.onrender.com
+- Source Code: https://github.com/yourusername/insyd-notification-poc
