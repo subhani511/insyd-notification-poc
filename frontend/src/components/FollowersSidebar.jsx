@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import { fetchUsers, followUser } from "../api";
 import styled from "styled-components";
 
-// Sidebar container
 const SidebarContainer = styled.div`
   background-color: #f9fbfd;
   border-radius: 12px;
@@ -14,7 +13,6 @@ const SidebarContainer = styled.div`
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 `;
 
-// User card
 const UserCard = styled.div`
   display: flex;
   justify-content: space-between;
@@ -30,7 +28,6 @@ const UserCard = styled.div`
   }
 `;
 
-// User name
 const UserName = styled.span`
   flex: 1;
   font-weight: 500;
@@ -39,7 +36,6 @@ const UserName = styled.span`
   margin-right: 12px;
 `;
 
-// Follow button
 const Button = styled.button`
   background: ${(props) => (props.$following ? "#4caf50" : "#007bff")};
   color: white;
@@ -61,40 +57,58 @@ const Button = styled.button`
 export default function FollowersSidebar({ userId, usersNotifications }) {
   const [users, setUsers] = useState([]);
   const [followStates, setFollowStates] = useState({});
-  const { addNotification, removeNotification } = usersNotifications;
+
+  const { addNotification, removeNotification } = usersNotifications || {};
 
   useEffect(() => {
-    fetchUsers().then((res) => {
-      setUsers(res.data);
-      const initialStates = {};
-      res.data.forEach((u) => { initialStates[u._id] = false; });
-      setFollowStates(initialStates);
-    });
+    const loadUsers = async () => {
+      try {
+        const res = await fetchUsers();
+        const usersArray = Array.isArray(res) ? res : [];
+
+        setUsers(usersArray);
+
+        const initialStates = {};
+        usersArray.forEach((u) => {
+          initialStates[u._id] = false; // default not following
+        });
+        setFollowStates(initialStates);
+      } catch (err) {
+        console.error("Failed to fetch users:", err);
+        setUsers([]);
+      }
+    };
+
+    loadUsers();
   }, []);
 
   const handleFollowToggle = async (targetUser) => {
     const isFollowing = followStates[targetUser._id];
 
-    await followUser({
-      followerId: userId,
-      followingId: targetUser._id,
-    });
-
-    if (!isFollowing) {
-      addNotification({
-        _id: `${userId}-${targetUser._id}-follow`,
-        type: "NEW_FOLLOW",
-        authorName: users.find(u => u._id === userId)?.name || "Someone",
-        read: false
+    try {
+      await followUser({
+        followerId: userId,
+        followingId: targetUser._id,
       });
-    } else {
-      removeNotification(`${userId}-${targetUser._id}-follow`);
-    }
 
-    setFollowStates((prev) => ({
-      ...prev,
-      [targetUser._id]: !isFollowing,
-    }));
+      if (!isFollowing && addNotification) {
+        addNotification({
+          _id: `${userId}-${targetUser._id}-follow`,
+          type: "NEW_FOLLOW",
+          authorName: users.find((u) => u._id === userId)?.name || "Someone",
+          read: false,
+        });
+      } else if (isFollowing && removeNotification) {
+        removeNotification(`${userId}-${targetUser._id}-follow`);
+      }
+
+      setFollowStates((prev) => ({
+        ...prev,
+        [targetUser._id]: !isFollowing,
+      }));
+    } catch (err) {
+      console.error("Follow toggle failed:", err);
+    }
   };
 
   return (

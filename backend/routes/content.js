@@ -1,57 +1,57 @@
 const express = require("express");
 const Content = require("../models/Content");
+const User = require("../models/User");
 const Notification = require("../models/Notification");
-const User = require("../models/user");
 
-module.exports = (io) => {
-  const router = express.Router();
+const router = express.Router();
 
-  router.post("/", async (req, res) => {
-    try {
-      const { authorId, text } = req.body;
-      if (!authorId || !text) 
-        return res.status(400).json({ error: "authorId and text required" });
-
-      // Create content
-      const content = new Content({ author: authorId, text });
-      await content.save();
-
-      // Populate author name
-      const populatedContent = await Content.findById(content._id)
-        .populate("author", "name");
-
-      // Notify followers + author themselves
-      const author = await User.findById(authorId);
-      const recipients = [...(author?.followers || []), author._id];
-
-      const notifications = recipients.map(userId => ({
-        user: userId,
-        contentId: content._id,
-        type: "FOLLOW",  // followers notification
-        read: false,
-        authorName: author.name
-      }));
-      await Notification.insertMany(notifications);
-      notifications.forEach(n => io.to(n.user.toString()).emit("new-notification", n));
-
-      // Organic discovery notifications (everyone else)
-      const allUsers = await User.find({ _id: { $nin: recipients } });
-      const organicNotifications = allUsers.map(u => ({
-        user: u._id,
-        contentId: content._id,
-        type: "DISCOVERY", // discovery notification
-        read: false,
-        authorName: author.name
-      }));
-      await Notification.insertMany(organicNotifications);
-      organicNotifications.forEach(n => io.to(n.user.toString()).emit("new-notification", n));
-
-      res.status(200).json(populatedContent);
-    } catch (err) {
-      console.error("POST /content error:", err);
-      res.status(500).json({ error: "Server error" });
+// Create a new post
+router.post("/", async (req, res) => {
+  try {
+    const { author, text } = req.body;
+    if (!author || !text) {
+      return res.status(400).json({ error: "Author and text are required" });
     }
-  });
 
-  return router;
-};
+    const newPost = new Content({ author, text });
+    await newPost.save();
+
+    // 🔹 Populate author name before returning
+    const populatedPost = await Content.findById(newPost._id)
+      .populate("author", "name")
+      .exec();
+
+    res.status(201).json(populatedPost);
+  } catch (err) {
+    console.error("❌ Error creating post:", err);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
+// Get all posts
+router.get("/", async (req, res) => {
+  try {
+    const posts = await Content.find().sort({ createdAt: -1 });
+
+    // Fetch author name for each post
+    const postsWithAuthors = await Promise.all(
+      posts.map(async (post) => {
+        const user = await User.findById(post.author); // authorId
+        return {
+          _id: post._id,
+          text: post.text,
+          createdAt: post.createdAt,
+          author: user ? { name: user.name } : { name: "Unknown Author" },
+        };
+      })
+    );
+
+    res.json(postsWithAuthors);
+  } catch (err) {
+    console.error("❌ Error fetching posts:", err);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
+
+module.exports = router;

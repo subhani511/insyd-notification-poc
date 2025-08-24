@@ -1,30 +1,44 @@
 const express = require("express");
 const router = express.Router();
-const User = require("../models/user");
-const Notification = require("../models/Notification"); // add Notification model
+const User = require("../models/User");
+const Notification = require("../models/Notification");
 
-// Create user
+// Create a new post
 router.post("/", async (req, res) => {
   try {
-    const user = new User(req.body);
-    await user.save();
-    res.json(user);
+    const { author, text } = req.body;
+    if (!author || !text) {
+      return res.status(400).json({ error: "Author and text are required" });
+    }
+
+    let newPost = new Content({ author, text });
+    await newPost.save();
+
+    // 🔹 Populate before sending response
+    newPost = await newPost.populate("author", "name");
+
+    res.status(201).json(newPost);
   } catch (err) {
-    console.error(err);
+    console.error("❌ Error creating post:", err);
     res.status(500).json({ error: "Server error" });
   }
 });
 
-// List users
+// Get all posts
 router.get("/", async (req, res) => {
   try {
-    const users = await User.find().select("name followers");
-    res.json(users);
+    const posts = await Content.find()
+      .populate("author", "name") // 🔹 THIS is critical
+      .sort({ createdAt: -1 });
+
+    res.json(posts);
   } catch (err) {
-    console.error(err);
+    console.error("❌ Error fetching posts:", err);
     res.status(500).json({ error: "Server error" });
   }
 });
+
+
 
 // Follow a user
 router.post("/follow", async (req, res) => {
@@ -36,29 +50,27 @@ router.post("/follow", async (req, res) => {
     const following = await User.findById(followingId);
     if (!following) return res.status(404).json({ error: "User to follow not found" });
 
-    // Toggle follow: if already following, unfollow
+    // Toggle follow
     const isFollowing = following.followers.includes(followerId);
     if (isFollowing) {
       following.followers = following.followers.filter(id => id.toString() !== followerId);
     } else {
       following.followers.push(followerId);
 
-      // Create NEW_FOLLOW notification for author
+      // Create NEW_FOLLOW notification
       const follower = await User.findById(followerId);
       if (follower) {
         const newFollowNotif = new Notification({
-          user: followingId,       // the author being followed
+          userId: followingId,       // recipient
           type: "NEW_FOLLOW",
           read: false,
-          authorName: follower.name,  // name of the follower
+          actorId: follower._id,     // reference to follower
         });
         await newFollowNotif.save();
 
         // Emit live notification via Socket.IO
-        const io = req.app.get("io"); // make sure io is attached in server.js: app.set("io", io)
-        if (io) {
-          io.to(followingId.toString()).emit("new-notification", newFollowNotif);
-        }
+        const io = req.app.get("io");
+        if (io) io.to(followingId.toString()).emit("new-notification", newFollowNotif);
       }
     }
 
@@ -69,6 +81,5 @@ router.post("/follow", async (req, res) => {
     res.status(500).json({ error: "Server error" });
   }
 });
-
 
 module.exports = router;

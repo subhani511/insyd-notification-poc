@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+// import io from "socket.io-client";
 import ContentForm from "./components/ContentForm";
 import Feed from "./components/Feed";
 import Notifications from "./components/Notifications";
@@ -39,7 +40,6 @@ const RightColumn = styled.div`
   gap: 20px;
 `;
 
-// ----- Reusable card wrapper -----
 const Section = styled.div`
   background: #fff;
   border-radius: 10px;
@@ -48,11 +48,12 @@ const Section = styled.div`
 `;
 
 export default function App() {
-  const [userId] = useState("68a8ab3888d25fe9ead1beab");
+  const [userId] = useState("68a9abc9a25b3784d0a1adec"); // example user
   const [posts, setPosts] = useState([]);
   const [notifications, setNotifications] = useState([]);
 
-  // Add/remove notification helpers
+  const [socket, setSocket] = useState(null);
+
   const addNotification = (notif) => {
     setNotifications((prev) => {
       if (prev.some((n) => n._id === notif._id)) return prev;
@@ -64,16 +65,13 @@ export default function App() {
     setNotifications((prev) => prev.filter((n) => n._id !== notifId));
   };
 
-  // New post handler
   const handleNewPost = (post) => {
     setPosts((prev) => [post, ...prev]);
-
-    // Add post notification
     addNotification({
       _id: post._id || `post-${Date.now()}`,
       type: "NEW_POST",
-      authorName: "You", // or post.authorName if available
-      read: false
+      authorName: post.author?.name || "You",
+      read: false,
     });
   };
 
@@ -81,7 +79,6 @@ export default function App() {
     <Container>
       <Title>Insyd POC</Title>
       <MainContent>
-        {/* ---- Center: Post form + Feed ---- */}
         <CenterColumn>
           <Section>
             <ContentForm authorId={userId} onNewPost={handleNewPost} />
@@ -91,7 +88,6 @@ export default function App() {
           </Section>
         </CenterColumn>
 
-        {/* ---- Right: Followers + Notifications ---- */}
         <RightColumn>
           <Section>
             <FollowersSidebar
@@ -100,10 +96,7 @@ export default function App() {
             />
           </Section>
           <Section>
-            <Notifications
-              userId={userId}
-              notifications={notifications}
-            />
+            <Notifications notifications={notifications} />
           </Section>
         </RightColumn>
       </MainContent>

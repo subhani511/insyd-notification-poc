@@ -29,6 +29,7 @@ const DateText = styled.small`
 `;
 
 export default function Feed({ posts = [] }) {
+  console.log("Posts in Feed:", posts);  // 🔹 debug
   return (
     <FeedContainer>
       {posts.length === 0 && <p style={{ textAlign: "center", color: "#777" }}>No posts yet</p>}

@@ -1,23 +1,17 @@
 import React from "react";
 import styled from "styled-components";
 
-// Container
 const Container = styled.div`
   width: 100%;
-  max-width: 800px;
-  margin: 20px auto;
 `;
 
-// Notification card
 const NotificationCard = styled.div`
   background: ${(props) =>
-    props.type === "NEW_FOLLOW" ? "#E0F7FA" :  // blue for follow
-    props.type === "NEW_POST" ? "#E8F5E9" :    // light green for post
-    "#E8F5E9"};
+    props.type === "NEW_FOLLOW" ? "#E0F7FA" :
+    props.type === "NEW_POST" ? "#E8F5E9" : "#E8F5E9"};
   border-left: 5px solid ${(props) =>
-    props.type === "NEW_FOLLOW" ? "#00BCD4" :  // blue
-    props.type === "NEW_POST" ? "#4CAF50" :    // green
-    "#4CAF50"};
+    props.type === "NEW_FOLLOW" ? "#00BCD4" :
+    props.type === "NEW_POST" ? "#4CAF50" : "#4CAF50"};
   border-radius: 8px;
   padding: 12px;
   margin-bottom: 10px;
@@ -27,12 +21,10 @@ const NotificationCard = styled.div`
   box-shadow: 0 2px 5px rgba(0,0,0,0.1);
 `;
 
-// Badge showing type
 const Badge = styled.span`
   background-color: ${(props) =>
     props.type === "NEW_FOLLOW" ? "#00BCD4" :
-    props.type === "NEW_POST" ? "#4CAF50" :     // green badge
-    "#4CAF50"};
+    props.type === "NEW_POST" ? "#4CAF50" : "#4CAF50"};
   color: white;
   font-size: 12px;
   padding: 2px 6px;
@@ -51,9 +43,9 @@ export default function Notifications({ notifications }) {
         <NotificationCard key={notif._id} type={notif.type}>
           <Badge type={notif.type}>{notif.type}</Badge>
           {notif.type === "NEW_FOLLOW"
-            ? `${notif.authorName} started following you`
+            ? `${notif.actorId?.name || notif.authorName || "Someone"} started following you`
             : notif.type === "NEW_POST"
-            ? `${notif.authorName} posted new content`
+            ? `${notif.actorId?.name || notif.authorName || "Someone"} posted new content`
             : "New notification"}
         </NotificationCard>
       ))}

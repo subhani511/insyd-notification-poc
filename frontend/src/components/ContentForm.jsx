@@ -40,11 +40,15 @@ export default function ContentForm({ authorId, onNewPost }) {
     if (!text) return;
 
     try {
-      const response = await postContent({ authorId, text });
+      const response = await postContent({
+        author: authorId, // ✅ fixed
+        text: text,       // ✅ fixed
+      });
+
       if (onNewPost) onNewPost(response.data);
       setText("");
     } catch (err) {
-      console.error(err);
+      console.error("❌ Error posting content:", err);
     }
   };
 
