@@ -9,11 +9,14 @@ const server = http.createServer(app);
 
 // Initialize Socket.IO
 const { Server } = require("socket.io");
-const io = new Server(server, { cors: { origin: "*" } });
+const io = new Server(server, { cors: { origin: "https://insyd-notification-poc-alpha.vercel.app", credentials: true } });
 app.set("io", io);
 
 // Middleware
-app.use(cors({ origin: "*" }));
+app.use(cors({ 
+  origin: "https://insyd-notification-poc-alpha.vercel.app", 
+  credentials: true 
+}));
 app.use(express.json());
 
 // Routes
