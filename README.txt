@@ -87,7 +87,7 @@ System Design Notes:
   * Designed for functional POC only, not production
 
 Deliverables:
--------------
+---------------
 - Frontend repository: https://insyd-notification-poc-alpha.vercel.app
 - Backend repository: https://insyd-notification-poc-3.onrender.com
 - Source Code: https://github.com/yourusername/insyd-notification-poc
