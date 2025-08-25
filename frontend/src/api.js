@@ -1,7 +1,15 @@
 import axios from "axios";
 
+// Auto-detect API base URL
+const API_BASE_URL =
+  process.env.REACT_APP_API_URL ||
+  (window.location.hostname === "localhost"
+    ? "http://localhost:5000" // local backend
+    : "https://insyd-notification-poc-3.onrender.com"); // deployed backend
+
 const api = axios.create({
-  baseURL: process.env.REACT_APP_API_URL,
+  baseURL: API_BASE_URL,
+  withCredentials: true, // ensure cookies/sessions are handled
 });
 
 // Axios interceptor for logging responses/errors

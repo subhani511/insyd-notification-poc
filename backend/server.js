@@ -7,16 +7,38 @@ const http = require("http");
 const app = express();
 const server = http.createServer(app);
 
-// Initialize Socket.IO
+// Allowed origins (local + production)
+const allowedOrigins = [
+  "https://insyd-notification-poc-alpha.vercel.app", // production frontend
+  "http://localhost:3000", // local frontend for dev
+];
+
+// CORS middleware
+app.use(
+  cors({
+    origin: function (origin, callback) {
+      // allow requests with no origin (like Postman, curl) or allowed origins
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
+    credentials: true,
+  })
+);
+
+// Socket.IO setup with same CORS rules
 const { Server } = require("socket.io");
-const io = new Server(server, { cors: { origin: "https://insyd-notification-poc-alpha.vercel.app", credentials: true } });
+const io = new Server(server, {
+  cors: {
+    origin: allowedOrigins,
+    credentials: true,
+  },
+});
 app.set("io", io);
 
 // Middleware
-app.use(cors({ 
-  origin: "https://insyd-notification-poc-alpha.vercel.app", 
-  credentials: true 
-}));
 app.use(express.json());
 
 // Routes
