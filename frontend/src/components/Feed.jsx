@@ -29,13 +29,13 @@ const DateText = styled.small`
 `;
 
 export default function Feed({ posts = [] }) {
-  console.log("Posts in Feed:", posts);  // 🔹 debug
+  console.log("Posts in Feed:", posts);  // debug
   return (
     <FeedContainer>
       {posts.length === 0 && <p style={{ textAlign: "center", color: "#777" }}>No posts yet</p>}
       {posts.map((post) => (
         <PostCard key={post._id}>
-          <Author>{post.author?.name || post.author}</Author>
+          <Author>{post.author?.name || "Unknown Author"}</Author>
           <Text>{post.text}</Text>
           <DateText>{new Date(post.createdAt).toLocaleString()}</DateText>
         </PostCard>

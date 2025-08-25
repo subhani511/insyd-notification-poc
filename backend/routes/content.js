@@ -1,7 +1,6 @@
 const express = require("express");
 const Content = require("../models/Content");
 const User = require("../models/UserItem");
-const Notification = require("../models/Notification");
 
 const router = express.Router();
 
@@ -16,9 +15,9 @@ router.post("/", async (req, res) => {
     const newPost = new Content({ author, text });
     await newPost.save();
 
-    // 🔹 Populate author name before returning
+    // Populate author name before sending response
     const populatedPost = await Content.findById(newPost._id)
-      .populate("author", "name")
+      .populate("author", "name") // crucial fix
       .exec();
 
     res.status(201).json(populatedPost);
@@ -31,27 +30,15 @@ router.post("/", async (req, res) => {
 // Get all posts
 router.get("/", async (req, res) => {
   try {
-    const posts = await Content.find().sort({ createdAt: -1 });
+    const posts = await Content.find()
+      .sort({ createdAt: -1 })
+      .populate("author", "name"); // crucial fix
 
-    // Fetch author name for each post
-    const postsWithAuthors = await Promise.all(
-      posts.map(async (post) => {
-        const user = await User.findById(post.author); // authorId
-        return {
-          _id: post._id,
-          text: post.text,
-          createdAt: post.createdAt,
-          author: user ? { name: user.name } : { name: "Unknown Author" },
-        };
-      })
-    );
-
-    res.json(postsWithAuthors);
+    res.json(posts);
   } catch (err) {
     console.error("❌ Error fetching posts:", err);
     res.status(500).json({ error: "Server error" });
   }
 });
-
 
 module.exports = router;

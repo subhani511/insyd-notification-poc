@@ -3,14 +3,14 @@ const Notification = require("../models/Notification");
 
 const router = express.Router();
 
-// ✅ Get notifications for a user
+// Get notifications for a user
 router.get("/:userId", async (req, res) => {
   try {
     const { userId } = req.params;
 
-    const notifications = await Notification.find({ userId })
-      .populate("actorId", "name")
-      .populate("contentId", "text")
+    const notifications = await Notification.find({ user: userId }) // corrected field
+      .populate("actor", "name")  // populate the actor's name
+      .populate("post", "text")   // populate the post text
       .sort({ createdAt: -1 });
 
     res.json(notifications);

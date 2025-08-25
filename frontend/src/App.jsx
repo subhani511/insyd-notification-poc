@@ -1,12 +1,10 @@
 import React, { useState, useEffect } from "react";
-// import io from "socket.io-client";
 import ContentForm from "./components/ContentForm";
 import Feed from "./components/Feed";
 import Notifications from "./components/Notifications";
 import FollowersSidebar from "./components/FollowersSidebar";
 import styled from "styled-components";
 
-// ----- Layout Wrappers -----
 const Container = styled.div`
   max-width: 1200px;
   margin: 0 auto;
@@ -52,8 +50,6 @@ export default function App() {
   const [posts, setPosts] = useState([]);
   const [notifications, setNotifications] = useState([]);
 
-  const [socket, setSocket] = useState(null);
-
   const addNotification = (notif) => {
     setNotifications((prev) => {
       if (prev.some((n) => n._id === notif._id)) return prev;
@@ -66,7 +62,12 @@ export default function App() {
   };
 
   const handleNewPost = (post) => {
-    setPosts((prev) => [post, ...prev]);
+    const newPost = {
+      ...post,
+      author: post.author || { name: "Alice" }, // fallback for instant UI
+    };
+    setPosts((prev) => [newPost, ...prev]);
+
     addNotification({
       _id: post._id || `post-${Date.now()}`,
       type: "NEW_POST",

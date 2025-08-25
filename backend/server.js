@@ -1,12 +1,19 @@
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
-require("dotenv").config(); // 👈 load .env for MONGO_URI etc.
+require("dotenv").config();
+const http = require("http");
 
 const app = express();
+const server = http.createServer(app);
+
+// Initialize Socket.IO
+const { Server } = require("socket.io");
+const io = new Server(server, { cors: { origin: "*" } });
+app.set("io", io);
 
 // Middleware
-app.use(cors({ origin: "*" })); // 👈 allow all origins (can restrict later)
+app.use(cors({ origin: "*" }));
 app.use(express.json());
 
 // Routes
@@ -26,7 +33,7 @@ async function startServer() {
     });
     console.log("✅ MongoDB connected");
 
-    app.listen(PORT, "0.0.0.0", () => {
+    server.listen(PORT, "0.0.0.0", () => {
       console.log(`🚀 Server running on port ${PORT}`);
     });
   } catch (err) {

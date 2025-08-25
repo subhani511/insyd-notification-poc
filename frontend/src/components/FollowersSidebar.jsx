@@ -61,25 +61,24 @@ export default function FollowersSidebar({ userId, usersNotifications }) {
   const { addNotification, removeNotification } = usersNotifications || {};
 
   useEffect(() => {
-    const loadUsers = async () => {
-      try {
-        const res = await fetchUsers();
-        const usersArray = Array.isArray(res) ? res : [];
+    fetchUsers()
+      .then((usersData) => {
+        if (Array.isArray(usersData)) {
+          setUsers(usersData);
 
-        setUsers(usersArray);
-
-        const initialStates = {};
-        usersArray.forEach((u) => {
-          initialStates[u._id] = false; // default not following
-        });
-        setFollowStates(initialStates);
-      } catch (err) {
+          const initialStates = {};
+          usersData.forEach((u) => {
+            initialStates[u._id] = false; // default: not following
+          });
+          setFollowStates(initialStates);
+        } else {
+          setUsers([]);
+        }
+      })
+      .catch((err) => {
         console.error("Failed to fetch users:", err);
         setUsers([]);
-      }
-    };
-
-    loadUsers();
+      });
   }, []);
 
   const handleFollowToggle = async (targetUser) => {
@@ -95,7 +94,7 @@ export default function FollowersSidebar({ userId, usersNotifications }) {
         addNotification({
           _id: `${userId}-${targetUser._id}-follow`,
           type: "NEW_FOLLOW",
-          authorName: users.find((u) => u._id === userId)?.name || "Someone",
+          authorName: users.find((u) => u._id.toString() === userId)?.name || "Someone",
           read: false,
         });
       } else if (isFollowing && removeNotification) {
