@@ -7,17 +7,16 @@ const http = require("http");
 const app = express();
 const server = http.createServer(app);
 
-// Allowed origins (local + production)
+// Allowed origins
 const allowedOrigins = [
   "https://insyd-notification-poc-alpha.vercel.app", // production frontend
-  "http://localhost:3000", // local frontend for dev
+  "http://localhost:3000", // local dev frontend
 ];
 
 // CORS middleware
 app.use(
   cors({
     origin: function (origin, callback) {
-      // allow requests with no origin (like Postman, curl) or allowed origins
       if (!origin || allowedOrigins.includes(origin)) {
         callback(null, true);
       } else {
@@ -28,13 +27,10 @@ app.use(
   })
 );
 
-// Socket.IO setup with same CORS rules
+// Socket.IO setup with same CORS
 const { Server } = require("socket.io");
 const io = new Server(server, {
-  cors: {
-    origin: allowedOrigins,
-    credentials: true,
-  },
+  cors: { origin: allowedOrigins, credentials: true },
 });
 app.set("io", io);
 
@@ -47,16 +43,24 @@ app.use("/content", require("./routes/content"));
 app.use("/notifications", require("./routes/notifications"));
 
 const PORT = process.env.PORT || 5000;
-const mongoURI = process.env.MONGO_URI || "mongodb://127.0.0.1:27017/insyd-poc";
 
-// Start server with DB connection
+// Ensure Mongo URI always points to INSYD-POC
+let mongoURI = process.env.MONGO_URI;
+if (mongoURI && !mongoURI.includes("INSYD-POC")) {
+  if (mongoURI.endsWith("/")) {
+    mongoURI = mongoURI + "INSYD-POC";
+  } else {
+    mongoURI = mongoURI + "/INSYD-POC";
+  }
+}
+
 async function startServer() {
   try {
     await mongoose.connect(mongoURI, {
       useNewUrlParser: true,
       useUnifiedTopology: true,
     });
-    console.log("✅ MongoDB connected");
+    console.log("✅ MongoDB connected to:", mongoURI);
 
     server.listen(PORT, "0.0.0.0", () => {
       console.log(`🚀 Server running on port ${PORT}`);
