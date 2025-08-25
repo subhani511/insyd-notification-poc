@@ -1,6 +1,6 @@
 INSYD – Notification System Proof-of-Concept
 
-Project Overview:
+Project Overview: 
 -----------------
 Insyd is the next-generation social web platform for the Architecture Industry. The platform connects users through blogs, chats, jobs, and other social interactions. To increase engagement, Insyd requires a real-time notification system that informs users about activity from people they follow, people following them, or users discovering their content.
 
