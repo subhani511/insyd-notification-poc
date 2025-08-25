@@ -7,7 +7,7 @@ Insyd is the next-generation social web platform for the Architecture Industry. 
 This project implements a **proof-of-concept (POC)** for the notification system, designed for a **bootstrapped startup scenario with 100 daily active users (DAUs)**.
 
 Key Features:
--------------
+--------------
 - Real-time notifications for user activities:
   * Posts by followed users
   * Comments or likes on user’s content
