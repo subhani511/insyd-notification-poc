@@ -25,6 +25,29 @@ router.get("/", async (req, res) => {
   }
 });
 
+// Create a new user
+router.post("/", async (req, res) => {
+  try {
+    const { name, email, password } = req.body;
+    if (!name || !email || !password) {
+      return res.status(400).json({ error: "Name, email, and password required" });
+    }
+
+    // Check if email already exists
+    const existing = await User.findOne({ email });
+    if (existing) return res.status(400).json({ error: "Email already exists" });
+
+    const newUser = new User({ name, email, password });
+    await newUser.save();
+
+    res.status(201).json({ _id: newUser._id, name: newUser.name, email: newUser.email });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
+
 // ------------------------------
 // FOLLOW / UNFOLLOW a user
 // ------------------------------
