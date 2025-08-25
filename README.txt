@@ -25,7 +25,7 @@ Technology Stack:
 - Real-time communication: Socket.io 
 
 Folder Structure:
------------------
+------------------
 insyd-notification-poc/
 │
 ├── frontend/                  # ReactJS frontend
